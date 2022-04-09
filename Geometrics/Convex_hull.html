@@ -33,17 +33,12 @@
 			}
 
 
-			const xs = [100, 300, 300, 420, 250, 150, 110, 220, 210, 320, 400, 400];
-			const ys = [120, 420, 330, 150, 100, 400, 300, 380, 250, 240, 400, 250];
-			
-			for(let i = 0 ; i < 12; i++){
-				xs[i] = 500*Math.random();
-				ys[i] = 500*Math.random();
-			}
-			
 			const points = [];
 			const lines = [];
 			
+			for(let i = 0 ; i < 30; i++)
+				points[i] = new Point(400*Math.random() + 50, 400*Math.random() + 50);
+
 			let min_y = 10000;
 			let min_y_index = -1;
 			
