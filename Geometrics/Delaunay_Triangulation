@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>title</title>
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			let canvas = document.getElementById('field');
+			let ctx = canvas.getContext("2d");
+			
+			function drawDot(x, y){
+				ctx.beginPath();
+				ctx.arc(x, y, 3, 0, 2*Math.PI);
+				ctx.fillStyle = "black";
+				ctx.fill();
+			}
+			function drawLine(x1, y1, x2, y2){
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y2);
+				ctx.strokeStyle = "black";
+				ctx.stroke();
+			}
+			
+			function Point(x, y){
+				this.x = x;
+				this.y = y;
+				//drawDot(x, y);
+			}
+			Point.prototype = {
+				constructor : Point,
+				draw : function(){ drawDot(this.x, this.y); },
+				comp : function(p) { return this.x > p.x || (this.x == p.x && this.y > p.y)}
+			}
+			
+	
+
+			const points = [];
+			const lines = [];
+			
+			///Random scattering
+			const N = 100;
+			for(let i = 0 ; i < N; i++){
+				points[i] = new Point(400*Math.random() + 50, 400*Math.random() + 50);
+				points[i].draw();
+			}
+			
+			
+			///index-shape
+			
+			function Line(a, b){ 
+				if(a < b){
+					this.a = a;
+					this.b = b;
+				}
+				else{
+					this.a = b;
+					this.b = a;
+				}
+			}
+			Line.prototype.hash = function(){ return this.a * (N+3) + this.b; }
+
+			function Triangle(a, b, c){
+				this.a = a;
+				this.b = b;
+				this.c = c;
+			}
+			
+			//Delauny Triangulation
+			function ccw(p1, p2, p3){
+				const prod = (p2.x-p1.x)*(p3.y-p1.y)-(p3.x-p1.x)*(p2.y-p1.y);
+				if(prod > 0)
+					return 1;
+				else if(prod < 0)
+					return -1;
+				else
+					return 0;
+			}
+			
+			function inCircumcircle(T, d){ //index_triangle-circumcircle
+				const A = points[T.a], B = points[T.b], C = points[T.c], P = points[d];
+
+				const tccw = ccw(A, B, C);
+				const adx = A.x-P.x, ady = A.y-P.y
+				const bdx = B.x-P.x, bdy = B.y-P.y
+				const cdx = C.x-P.x, cdy = C.y-P.y
+				
+				const bdxcdy=bdx*cdy,cdxbdy=cdx*bdy,adxcdy=adx*cdy,cdxady=cdx*ady,adxbdy=adx*bdy,bdxady=bdx*ady;
+				
+				const alift = adx*adx + ady*ady;
+				const blift = bdx*bdx + bdy*bdy;
+				const clift = cdx*cdx + cdy*cdy;
+				
+				const det = alift*(bdxcdy - cdxbdy) - blift*(adxcdy - cdxady) + clift*(adxbdy - bdxady);
+				
+				if(tccw > 0) return det > 0;
+				else return det < 0;
+			}
+			
+			const SV = 10000;
+			points.push(new Point(0, SV));
+			points.push(new Point(SV, -SV));
+			points.push(new Point(-SV, -SV));
+			
+			const triangles = [new Triangle(N, N+1, N+2)]; //index-triangle
+			
+			for (let i = 0; i < N; i++){
+				const complete = new Array(triangles.length);
+				const polygon = new Set();
+				
+				for (let j = 0; j < triangles.length; j++){
+					if(complete[j])
+						continue;
+
+					let t = triangles[j];
+					
+					if(inCircumcircle(t, i)){
+						let tline = (new Line(t.a, t.b)).hash();
+						if(polygon.has(tline)) polygon.delete(tline);
+						else polygon.add(tline);
+						
+						tline = (new Line(t.b, t.c)).hash();
+						if(polygon.has(tline)) polygon.delete(tline);
+						else polygon.add(tline);
+						
+						tline = (new Line(t.c, t.a)).hash();
+						if(polygon.has(tline)) polygon.delete(tline);
+						else polygon.add(tline);
+						
+						complete[j] = complete[triangles.length-1];
+						triangles[j] = triangles[triangles.length-1];
+						triangles.pop();
+						j--;
+						
+						continue;
+					}
+					complete[j] = true;
+				}
+
+				for (let l of polygon){
+					const a = Math.floor(l / (N+3));
+					const b = l % (N+3);
+					triangles.push(new Triangle(a, b, i));
+				}
+
+			}
+			
+			for(let i = 0; i < triangles.length; i++){
+				const t = triangles[i];
+				if(t.a >= N || t.b >= N || t.c >= N){
+					triangles[i] = triangles[triangles.length-1];
+					triangles.pop();
+					i--;
+					continue;
+				}
+			}
+
+			for(let i = 0; i < triangles.length; i++){
+				const t = triangles[i];
+				const pA = points[t.a], pB = points[t.b], pC = points[t.c];
+				drawLine(pA.x, pA.y, pB.x, pB.y);
+				drawLine(pA.x, pA.y, pC.x, pC.y);
+				drawLine(pC.x, pC.y, pB.x, pB.y);
+			}
+		})
+	</script>
+	<style type="text/css">
+		canvas {border:1px solid black;}
+	</style>
+</head>
+<body>
+	<canvas id = "field" width="500" height="500">
+	</canvas>
+</body>
+</html>
