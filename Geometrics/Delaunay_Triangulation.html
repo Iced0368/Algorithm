@@ -36,10 +36,25 @@
 			const points = [];
 			const lines = [];
 			
+			
 			///Random scattering
-			const N = 100;
+			
+			function Radius_scatter(){
+				const r = 200*Math.random();
+				const theta = 2*Math.PI * Math.random();
+				
+				return new Point(250+r*Math.cos(theta), 250+r*Math.sin(theta))
+			}
+			function Flat_scatter(){
+				return new Point(400*Math.random() + 50, 400*Math.random() + 50);
+			}
+			
+			const N = 200;
 			for(let i = 0 ; i < N; i++){
-				points[i] = new Point(400*Math.random() + 50, 400*Math.random() + 50);
+				if(Math.random() > 0.5)
+					points[i] = Flat_scatter();
+				else
+					points[i] = Radius_scatter();
 				points[i].draw();
 			}
 			
