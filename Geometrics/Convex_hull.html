@@ -36,20 +36,16 @@
 			const points = [];
 			const lines = [];
 			
-			for(let i = 0 ; i < 30; i++)
-				points[i] = new Point(400*Math.random() + 50, 400*Math.random() + 50);
-
 			let min_y = 10000;
 			let min_y_index = -1;
-			
-			for(let i = 0; i < 12; i++){
-				points.push(new Point(xs[i], ys[i]));
-				if(min_y > ys[i]){
-					min_y = ys[i];
+			for(let i = 0 ; i < 30; i++){
+				points[i] = new Point(400*Math.random() + 50, 400*Math.random() + 50);
+				if(min_y > points[i].y){
+					min_y = points[i].y;
 					min_y_index = i;
 				}
 			}
-			
+
 			const temp = points[min_y_index];
 			points[min_y_index] = points[0];
 			points[0] = temp;
